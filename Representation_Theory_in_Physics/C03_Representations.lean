@@ -150,16 +150,129 @@ instance : Group mySet where
         unfold HMul.hMul instHMul
         simp
         rw [mySet_mul]
-
 -- ayyyyy we have a group now!
--- as an aside, proving mul_assoc is kindof comical. It would grow very quickly. Here we have to match over the 2^{3} = 8 possible instances of a b c. Is there a  concise way to write
-
-#check Group mySet
+-- as an aside, proving mul_assoc is kindof comical. It would grow very quickly. Here we have to match over the
+-- 2^{3} = 8 possible instances of a b c. Is there a  concise way to write
 
 -- now we can start defining representations!
 
-variable (G:Type) [Group G] -- assume G
+-- assume G
 
-def representation (n:ℕ) := G → GeneralLinearGroup (Fin n) ℝ -- for now we assume our representations are over the reals...
+def representation (G:Type) [Group G] (n:ℕ) := G →* GeneralLinearGroup (Fin n) ℝ -- for now we assume our representations are over the reals...
 
 -- we can use this definition to build representations from Group mySet → GL_{n}(R).
+
+def mySet_trivialMap : mySet → GeneralLinearGroup (Fin 1) ℝ  := by
+  intro g
+  match g with
+    | my_one =>
+      exact 1
+    | my_two =>
+      exact 1
+
+instance : MulHom mySet (GeneralLinearGroup (Fin 1) ℝ) where
+  toFun := mySet_trivialMap
+  map_mul' := by
+    intro x y
+    match x with
+     | my_one =>
+        match y with
+          | my_one =>
+            rw [mySet_trivialMap]
+            have h: (my_one * my_one = my_one) := by
+              unfold HMul.hMul instHMul
+              simp
+              exact mySet_mul.eq_def (my_one) (my_one) -- I found this by trial and error, lean suggestions were helpful here.
+            rw [h]
+            rw [mySet_trivialMap]
+            simp
+          | my_two =>
+            rw [mySet_trivialMap, mySet_trivialMap]
+            have h: (my_one * my_two = my_two) := by
+              unfold HMul.hMul instHMul
+              simp
+              exact mySet_mul.eq_def (my_one) (my_two)
+            rw [h]
+            rw [mySet_trivialMap]
+            simp
+     | my_two =>
+        match y with
+          | my_one =>
+            rw [mySet_trivialMap, mySet_trivialMap]
+            have h: (my_two * my_one = my_two) := by
+              unfold HMul.hMul instHMul
+              simp
+              exact mySet_mul.eq_def (my_two) (my_one)
+            rw [h]
+            rw [mySet_trivialMap]
+            simp
+          | my_two =>
+            rw [mySet_trivialMap]
+            have h: (my_two * my_two = my_one) := by
+              unfold HMul.hMul instHMul
+              simp
+              exact mySet_mul.eq_def (my_two) (my_two)
+            rw [h]
+            rw [mySet_trivialMap]
+            simp
+
+-- nice. We have shown that mySet_trivialMap, which takes mySet and maps it to GL(1, Reals) is a homomorphism!
+
+-- there is one more irreducible representation that maps the identity to the identity and the other element to negative one. Let's define it:
+
+def mySet_MapTwo : mySet → GeneralLinearGroup (Fin 1) ℝ  := by
+  intro g
+  match g with
+    | my_one =>
+      exact 1
+    | my_two =>
+      exact -1
+
+instance : MulHom mySet (GeneralLinearGroup (Fin 1) ℝ) where
+  toFun := mySet_MapTwo
+  map_mul' := by
+    intro x y
+    match x with
+     | my_one =>
+        match y with
+          | my_one =>
+            rw [mySet_MapTwo]
+            have h: (my_one * my_one = my_one) := by
+              unfold HMul.hMul instHMul
+              simp
+              exact mySet_mul.eq_def (my_one) (my_one) -- I found this by trial and error, lean suggestions were helpful here.
+            rw [h]
+            rw [mySet_MapTwo]
+            simp
+          | my_two =>
+            rw [mySet_MapTwo, mySet_MapTwo]
+            have h: (my_one * my_two = my_two) := by
+              unfold HMul.hMul instHMul
+              simp
+              exact mySet_mul.eq_def (my_one) (my_two)
+            rw [h]
+            rw [mySet_MapTwo]
+            simp
+     | my_two =>
+        match y with
+          | my_one =>
+            rw [mySet_MapTwo, mySet_MapTwo]
+            have h: (my_two * my_one = my_two) := by
+              unfold HMul.hMul instHMul
+              simp
+              exact mySet_mul.eq_def (my_two) (my_one)
+            rw [h]
+            rw [mySet_MapTwo]
+            simp
+          | my_two =>
+            rw [mySet_MapTwo]
+            have h: (my_two * my_two = my_one) := by
+              unfold HMul.hMul instHMul
+              simp
+              exact mySet_mul.eq_def (my_two) (my_two)
+            rw [h]
+            rw [mySet_MapTwo]
+            simp
+
+-- now that we have these two maps, and have proved that they are indeed homomorphisms we want to introduce the notion of an irreducible representation as well as the idea of direct sums.
+-- This is where it will start to get interesting!
